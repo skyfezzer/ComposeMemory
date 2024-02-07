@@ -1,11 +1,11 @@
 package fr.skyfezzer.composememorygame
 
-import android.widget.Toast
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -31,7 +31,13 @@ class MemoryGameViewModel : ViewModel() {
     }
 
     // Function to handle tile clicked
+    @OptIn(DelicateCoroutinesApi::class)
     private fun onTileClicked(tile: Tile) {
+        if(tile.faceUp){
+            Log.i("onTileClicked","tile already has face up")
+            return
+        }
+
         if (selectedTile == null) {
             // First tile clicked
             selectedTile = tile

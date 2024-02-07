@@ -1,7 +1,5 @@
 package fr.skyfezzer.composememorygame
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,14 +8,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -36,7 +28,6 @@ fun MemoryGame(
     ) {
         for (i in 0 until cardsAmount / 3) {
             Row(modifier = Modifier.padding(top = spaceBetween)) {
-                var tileObject: Tile
                 for (j in 0 until 3) {
                     GameTile(
                         tile = tilesList[i * 3 + j],
@@ -78,32 +69,7 @@ fun PreviewMemoryGame() {
     )
 }
 
-fun Modifier.bounceClickable(
-    minScale: Float = .8f,
-    onAnimationFinished: (() -> Unit)? = null,
-    onClick: (() -> Unit)? = null,
-) = composed {
-    var isPressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) minScale else 1f,
-        label = ""
-    ) {
-        if (isPressed) {
-            isPressed = false
-            onAnimationFinished?.invoke()
-        }
-    }
 
-    this
-        .graphicsLayer {
-            scaleX = scale
-            scaleY = scale
-        }
-        .clickable {
-            isPressed = true
-            onClick?.invoke()
-        }
-}
 
 /*
 @SuppressLint("DiscouragedApi")
