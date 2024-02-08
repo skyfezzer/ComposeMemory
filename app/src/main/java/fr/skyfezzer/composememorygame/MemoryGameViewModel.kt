@@ -33,7 +33,7 @@ class MemoryGameViewModel : ViewModel() {
         Log.i("onTileClicked",(if (state.firstClick) "first" else "second")+" click on $clickedTile")
 
         if(clickedTile.faceUp){
-            Log.i("onTileClicked","tile already has face up")
+            // Clicked tile is already face up, skipping.
             return
         }
         if(state.firstClick && state.rememberedTile != null){
@@ -101,15 +101,11 @@ class MemoryGameViewModel : ViewModel() {
 
     private fun updateFaceInState(tile: Tile, isUp: Boolean) {
         tile.faceUp = isUp
-        Log.i("updateFaceInState", "before : $tile")
-        var tempList = state.tilesList
-
         state = state.copy(
-            tilesList = tempList.updateElement({ it.id == tile.id }) {
+            tilesList = state.tilesList.updateElement({ it.id == tile.id }) {
                 tile
             }
         )
-        Log.i("updateFaceInState", "after : $tile")
     }
 
     // Generate a list of Tile objects of size "size"
