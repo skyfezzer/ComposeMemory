@@ -1,5 +1,6 @@
 package fr.skyfezzer.composememorygame
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,29 +16,32 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun MemoryGame(
-    tilesList: List<Tile>,
+    state: GameState,
     onAction: (GameAction) -> Unit
 ) {
     // Space between each tiles
     val spaceBetween = 8.dp
     // Number of cards to be displayed and played with
-    val cardsAmount = tilesList.size
+    val cardsAmount = state.tilesList.size
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         for (i in 0 until cardsAmount / 3) {
             Row(modifier = Modifier.padding(top = spaceBetween)) {
+                var debug = ""
                 for (j in 0 until 3) {
+                    debug += (" \t| " + state.tilesList[i * 3 + j])
                     GameTile(
-                        tile = tilesList[i * 3 + j],
+                        tile = state.tilesList[i * 3 + j],
                         onClick = {
-                            onAction(GameAction.TileClicked(tilesList[i * 3 + j]))
+                            onAction(GameAction.TileClicked(state.tilesList[i * 3 + j]))
                         }
                     )
 
                     Spacer(modifier = Modifier.width(spaceBetween))
                 }
+                Log.i("Tile drawing :",debug)
             }
         }
         Row(
@@ -64,7 +68,7 @@ fun MemoryGame(
 fun PreviewMemoryGame() {
     val viewModel = MemoryGameViewModel()
     MemoryGame(
-        tilesList = viewModel.tilesList,
+        state = viewModel.state,
         onAction = viewModel::onAction
     )
 }

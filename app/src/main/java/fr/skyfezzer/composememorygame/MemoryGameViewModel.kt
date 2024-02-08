@@ -5,18 +5,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MemoryGameViewModel : ViewModel() {
 
-    private var tilesAmount = 12
+    private var tilesAmount = 6
+    var state by mutableStateOf(GameState(generateNewTileList(tilesAmount)))
+        private set
 
-    var tilesList by mutableStateOf(generateNewTileList(tilesAmount))
-
-    private var selectedTile by mutableStateOf<Tile?>(null)
 
     fun onAction(action: GameAction) {
         when(action){
@@ -31,56 +29,87 @@ class MemoryGameViewModel : ViewModel() {
     }
 
     // Function to handle tile clicked
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun onTileClicked(tile: Tile) {
-        if(tile.faceUp){
+    private fun onTileClicked(clickedTile: Tile) {
+        Log.i("onTileClicked",(if (state.firstClick) "first" else "second")+" click on $clickedTile")
+
+        if(clickedTile.faceUp){
             Log.i("onTileClicked","tile already has face up")
             return
         }
-
-        if (selectedTile == null) {
+        if(state.firstClick && state.rememberedTile != null){
+            return
+        }
+        this.updateFaceInState(
+            tile = clickedTile,
+            isUp = true
+        )
+        if (state.firstClick) {
             // First tile clicked
-            selectedTile = tile
-            setFaceUp(tile,true)
+            state = state.copy(
+                firstClick = false,
+                rememberedTile = clickedTile
+            )
+
         } else {
             // Second tile clicked, compare and reset selectedTile
-            if (selectedTile!!.type != tile.type) {
-                // Stocking precedent selectedTile temporarily.
-                var tempTile = selectedTile
-                // Replacing it with the actual clicked tile, in order to flip it up.
-                selectedTile = tile
-                setFaceUp(selectedTile!!,true)
+            if(state.rememberedTile == null){
+                Log.e("onTileClicked","Second Click captured, rememberedTile shouldn't be null but was.")
+                return
+            }
+
+            // If our precedent and current tiles aren't the same type
+            if (state.rememberedTile!!.type != clickedTile.type) {
+                // We display the card face up in order to let know player what card it is,
+                // Before flipping back down.
+                this.updateFaceInState(
+                    tile = clickedTile,
+                    isUp = true
+                )
 
                 // Flipping them back after a couple of seconds, otherwise it would flip back down instantly
                 // without revealing itself
-                GlobalScope.launch {
-                    // TODO: Delay + fix second click
+
+                MainScope().launch {
                     delay(1000)
-                    // FORCE SETTING SELECTEDTILE BACK
-                    // IN ORDER TO AVOID NULLPOINTER
-                    selectedTile = tempTile
-                    setFaceUp(selectedTile!!,false)
-                    selectedTile = tile
-                    setFaceUp(selectedTile!!,false)
-                    tempTile = null
-                    selectedTile = null
+                    // TODO: Rework this variable mess
+                    updateFaceInState(
+                        tile = clickedTile,
+                        isUp = false
+                    )
+                    updateFaceInState(
+                        tile = state.rememberedTile!!,
+                        isUp = false
+                    )
+                    state = state.copy(rememberedTile = null)
                 }
+
+
             }else{
-                selectedTile = tile
-                setFaceUp(selectedTile!!,true)
+                this.updateFaceInState(
+                    tile = clickedTile,
+                    isUp = true
+                )
+                state = state.copy(rememberedTile = null)
             }
-            selectedTile = null
+            state = state.copy(firstClick = true)
         }
     }
 
     private fun resetGame() {
-        tilesList = generateNewTileList(tilesAmount)
+        state = GameState(generateNewTileList(tilesAmount))
     }
 
-    private fun setFaceUp(tile: Tile, up: Boolean) {
-        tilesList = tilesList.updateElement({it.id == tile.id}) {
-            it.copy(faceUp = up)
-        }
+    private fun updateFaceInState(tile: Tile, isUp: Boolean) {
+        tile.faceUp = isUp
+        Log.i("updateFaceInState", "before : $tile")
+        var tempList = state.tilesList
+
+        state = state.copy(
+            tilesList = tempList.updateElement({ it.id == tile.id }) {
+                tile
+            }
+        )
+        Log.i("updateFaceInState", "after : $tile")
     }
 
     // Generate a list of Tile objects of size "size"
@@ -96,9 +125,11 @@ class MemoryGameViewModel : ViewModel() {
         }).shuffled()
     }
 
-    private fun <T> List<T>.updateElement(predicate: (T) -> Boolean, transform: (T) -> T): List<T> {
-        return map { if (predicate(it)) transform(it) else it }
-    }
+
+}
+
+fun <T> List<T>.updateElement(predicate: (T) -> Boolean, transform: (T) -> T): List<T> {
+    return map { if (predicate(it)) transform(it) else it }
 }
 
 

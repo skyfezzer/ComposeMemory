@@ -14,7 +14,7 @@ class MainActivity : ComponentActivity() {
             ComposeMemoryGameTheme {
                 val viewModel = viewModel<MemoryGameViewModel>()
                 MemoryGame(
-                    tilesList = viewModel.tilesList,
+                    state = viewModel.state,
                     onAction = viewModel::onAction
                 )
             }

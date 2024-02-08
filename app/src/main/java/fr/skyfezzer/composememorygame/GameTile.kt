@@ -57,8 +57,6 @@ fun GameTile(
             contentDescription = null, // Content description can be set as needed
             modifier = Modifier.fillMaxSize()
         )
-
-        Log.i("Tile drawing :","Tile draw $tile")
     }
 }
 
