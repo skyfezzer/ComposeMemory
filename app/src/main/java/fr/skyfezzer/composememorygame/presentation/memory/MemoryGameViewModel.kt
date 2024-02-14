@@ -11,7 +11,13 @@ import fr.skyfezzer.composememorygame.util.GameAction
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+// TODO : Use androidx.compose.runtime.snapshots.SnapshotStateList in order to handle tiles list.
+
+// TODO : Find a way to dissociate timer recomposition from TileGrid recomposition
+// Reason : Bad handling of Tiles state. Should use SnapshotStateList
+// https://stackoverflow.com/questions/74699081
 class MemoryGameViewModel : ViewModel() {
+
 
     private val tilesAmount = 12
 
@@ -33,36 +39,41 @@ class MemoryGameViewModel : ViewModel() {
     }
 
     // Function to handle tile clicked
-    /* TODO: Rework tile storage in memory, as a click triggers whole app recomposition.
-       I should use LiveData
-    */
     private fun onTileClicked(clickedTile: Tile) {
         Log.i(
             "onTileClicked",
             (if (state.firstClick) "first" else "second") + " click on $clickedTile"
         )
+        // Starting chrono in case it isn't already.
         state = state.copy(playing = true)
+
+        // constraint verification
         if (clickedTile.faceUp) {
             // Clicked tile is already face up, skipping.
             return
         }
+        // constraint verification
         if (state.firstClick && state.rememberedTile != null) {
             return
         }
+
+        // Flip up actual clicked tile before any algorithm.
         this.updateFaceInState(
             tile = clickedTile,
             isUp = true
         )
+
+        // If it's our first selection of the pair
         if (state.firstClick) {
-            // First tile clicked
+            // We update state with the tile to remember, will check pair at second click.
             state = state.copy(
                 firstClick = false,
                 rememberedTile = clickedTile
             )
-
+            // If not, we need to check bunch of stuff
         } else {
-            // Second tile clicked, compare and reset selectedTile
-            if(state.rememberedTile == null){
+            // Constraint check
+            if (state.rememberedTile == null) {
                 Log.e("onTileClicked","Second Click captured, rememberedTile shouldn't be null but was.")
                 return
             }
@@ -93,8 +104,9 @@ class MemoryGameViewModel : ViewModel() {
                         state.copy(rememberedTile = null, amountOfTries = state.amountOfTries + 1)
                 }
 
-
+                // else, if they are the same type
             }else{
+                // Right pair found, update the state and let them stay face up.
                 this.updateFaceInState(
                     tile = clickedTile,
                     isUp = true
@@ -125,8 +137,11 @@ class MemoryGameViewModel : ViewModel() {
         ).shuffled()
 
         return tileResNames
+            // Shuffle the initial resource list
             .shuffled()
+            // Removes n first elements, in order to get a list of size WANTED_SIZE / 2
             .drop(tileResNames.size - (size / 2))
+            // ForEach resource String, create a Tile Object and push it to the final list.
             .flatMap {
                 listOf(
                     Tile(
@@ -138,7 +153,9 @@ class MemoryGameViewModel : ViewModel() {
                         id = it.hashCode() + 1
                     )
                 )
-            }.shuffled()
+            }
+            // Shuffle for pair randomization (otherwise pairs next to each-other).
+            .shuffled()
     }
 
 

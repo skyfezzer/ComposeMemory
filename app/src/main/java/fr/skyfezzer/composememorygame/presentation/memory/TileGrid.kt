@@ -28,22 +28,4 @@ fun TileGrid(
             }
         }
     )
-    /*for (i in 0 until state.tilesList.size / 3) {
-        Row(modifier = Modifier.padding(top = spaceBetween)) {
-            var debug = ""
-            for (j in 0 until 3) {
-                debug += (" \t| " + state.tilesList[i * 3 + j])
-                Tile(
-                    modifier = Modifier.weight(1f),
-                    tile = state.tilesList[i * 3 + j],
-                    onClick = {
-                        onAction(GameAction.TileClicked(state.tilesList[i * 3 + j]))
-                    }
-                )
-
-                Spacer(modifier = Modifier.width(spaceBetween))
-            }
-            Log.i("Tile drawing :", debug)
-        }
-    }*/
 }
