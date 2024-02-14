@@ -5,21 +5,8 @@
       <entry key="MainMenu">
         <State />
       </entry>
-      <entry key="app">
-        <State>
-          <targetSelectedWithDropDown>
-            <Target>
-              <type value="QUICK_BOOT_TARGET" />
-              <deviceKey>
-                <Key>
-                  <type value="VIRTUAL_DEVICE_PATH" />
-                  <value value="C:\Users\Sk\.android\avd\Pixel_7_API_31.avd" />
-                </Key>
-              </deviceKey>
-            </Target>
-          </targetSelectedWithDropDown>
-          <timeTargetWasSelectedWithDropDown value="2024-01-31T15:43:34.684570100Z" />
-        </State>
+      <entry key="Super Memory">
+        <State />
       </entry>
     </value>
   </component>

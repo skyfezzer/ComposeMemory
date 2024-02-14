@@ -1,4 +1,4 @@
-package fr.skyfezzer.composememorygame
+package fr.skyfezzer.composememorygame.presentation.memory
 
 import android.annotation.SuppressLint
 import android.util.Log
@@ -7,10 +7,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,31 +18,37 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import fr.skyfezzer.composememorygame.R
+import fr.skyfezzer.composememorygame.model.Tile
+
 
 @SuppressLint("DiscouragedApi")
 @Composable
-fun GameTile(
+fun Tile(
     tile: Tile,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
-    ){
-
+) {
     Box(
         modifier = Modifier
-            .size(120.dp)
+            .aspectRatio(1f)
             .clip(RoundedCornerShape(32.dp))
+            .aspectRatio(1f)
             .bounceClickable(onAnimationFinished = { onClick() })
             .background(
-                color = if (tile.faceUp) MaterialTheme.colorScheme.primary
-                else MaterialTheme.colorScheme.secondary,
+                color = Color(0x00FFFFFF),
                 shape = RoundedCornerShape(32.dp)
             )
+
             .then(modifier)
     ) {
+
+
         Image(
             painter = painterResource(
                 id =
@@ -57,6 +62,7 @@ fun GameTile(
             contentDescription = null, // Content description can be set as needed
             modifier = Modifier.fillMaxSize()
         )
+        Log.i("tile drawing", "drawing ${tile.type}")
     }
 }
 
@@ -74,7 +80,6 @@ fun Modifier.bounceClickable(
         if (isPressed) {
             isPressed = false
             onAnimationFinished?.invoke()
-            Log.i("animation","finished")
         }
     }
 

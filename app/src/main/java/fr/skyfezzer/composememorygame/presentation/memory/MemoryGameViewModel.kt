@@ -1,42 +1,52 @@
-package fr.skyfezzer.composememorygame
+package fr.skyfezzer.composememorygame.presentation.memory
 
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.MainScope
+import androidx.lifecycle.viewModelScope
+import fr.skyfezzer.composememorygame.model.Tile
+import fr.skyfezzer.composememorygame.util.GameAction
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MemoryGameViewModel : ViewModel() {
 
-    private var tilesAmount = 6
-    var state by mutableStateOf(GameState(generateNewTileList(tilesAmount)))
+    private val tilesAmount = 12
+
+    private val initialList = generateNewTileList(tilesAmount)
+    var state by mutableStateOf(GameState(initialList))
         private set
 
-
     fun onAction(action: GameAction) {
-        when(action){
+        when (action) {
             is GameAction.ResetGame -> resetGame()
-            is GameAction.TileClicked-> onTileClicked(action.tile)
+            is GameAction.TileClicked -> onTileClicked(action.clickedTile)
             is GameAction.PauseTimer -> pauseTimer()
         }
     }
 
     private fun pauseTimer() {
-        TODO("Not yet implemented")
+
+
     }
 
     // Function to handle tile clicked
+    /* TODO: Rework tile storage in memory, as a click triggers whole app recomposition.
+       I should use LiveData
+    */
     private fun onTileClicked(clickedTile: Tile) {
-        Log.i("onTileClicked",(if (state.firstClick) "first" else "second")+" click on $clickedTile")
-
-        if(clickedTile.faceUp){
+        Log.i(
+            "onTileClicked",
+            (if (state.firstClick) "first" else "second") + " click on $clickedTile"
+        )
+        state = state.copy(playing = true)
+        if (clickedTile.faceUp) {
             // Clicked tile is already face up, skipping.
             return
         }
-        if(state.firstClick && state.rememberedTile != null){
+        if (state.firstClick && state.rememberedTile != null) {
             return
         }
         this.updateFaceInState(
@@ -69,9 +79,8 @@ class MemoryGameViewModel : ViewModel() {
                 // Flipping them back after a couple of seconds, otherwise it would flip back down instantly
                 // without revealing itself
 
-                MainScope().launch {
+                viewModelScope.launch {
                     delay(1000)
-                    // TODO: Rework this variable mess
                     updateFaceInState(
                         tile = clickedTile,
                         isUp = false
@@ -80,7 +89,8 @@ class MemoryGameViewModel : ViewModel() {
                         tile = state.rememberedTile!!,
                         isUp = false
                     )
-                    state = state.copy(rememberedTile = null)
+                    state =
+                        state.copy(rememberedTile = null, amountOfTries = state.amountOfTries + 1)
                 }
 
 
@@ -89,7 +99,7 @@ class MemoryGameViewModel : ViewModel() {
                     tile = clickedTile,
                     isUp = true
                 )
-                state = state.copy(rememberedTile = null)
+                state = state.copy(rememberedTile = null, amountOfTries = state.amountOfTries + 1)
             }
             state = state.copy(firstClick = true)
         }
@@ -100,10 +110,9 @@ class MemoryGameViewModel : ViewModel() {
     }
 
     private fun updateFaceInState(tile: Tile, isUp: Boolean) {
-        tile.faceUp = isUp
         state = state.copy(
             tilesList = state.tilesList.updateElement({ it.id == tile.id }) {
-                tile
+                tile.copy(faceUp = isUp)
             }
         )
     }
@@ -115,10 +124,21 @@ class MemoryGameViewModel : ViewModel() {
             "woods", "dragon", "face", "fox", "totoro", "tree", "wizard"
         ).shuffled()
 
-        return ((1..(size / 2)).flatMap {
-            val type = tileResNames.drop(it).first()
-            listOf(Tile(id = it, type = type), Tile(id = it+size,type = type))
-        }).shuffled()
+        return tileResNames
+            .shuffled()
+            .drop(tileResNames.size - (size / 2))
+            .flatMap {
+                listOf(
+                    Tile(
+                        type = it,
+                        id = it.hashCode()
+                    ),
+                    Tile(
+                        type = it,
+                        id = it.hashCode() + 1
+                    )
+                )
+            }.shuffled()
     }
 
 
